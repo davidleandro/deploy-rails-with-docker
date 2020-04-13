@@ -1,16 +1,17 @@
 #!/bin/bash
 clear
+
 # Account access
 read -p 'Ruby Version: ' ruby
 read -p 'Git Username: ' uservar
 read -sp 'Git Password: ' passvar
 echo
 read -p 'URL Project: ' project
-read -p 'Project name (without spaces): ' WORKDIR
 
 # Remove https
 URL="${project/'https://'/''}"
 CUSTOMURL="https://${uservar}:${passvar}@${URL}"
+WORKDIR="myapp"
 
 cat <<EOT >> Dockerfile
     # Base image:
@@ -18,8 +19,8 @@ cat <<EOT >> Dockerfile
 
     # Install dependencies
     RUN apt-get update
-    RUN curl -sL https://deb.nodesource.com/setup_8.x | bash -
-    RUN apt-get apt-get install -qq -y \
+    RUN curl -sL https://deb.nodesource.com/setup_10.x | bash -
+    RUN apt-get install -qq -y \
       git \
       nodejs \
       cron
@@ -34,13 +35,11 @@ cat <<EOT >> Dockerfile
     RUN git clone ${CUSTOMURL} .
 
     # Copy the Rails application into place
+    COPY application.yml /${WORKDIR}/config/application.yml
     COPY . /${WORKDIR}
 
     # Define where our application will live inside the image
     ENV BUNDLE_PATH /bundle
-
-    # Define the enviroment that will be rolling
-    ENV RAILS_ENV production
 
     # Finish establishing our Ruby enviornment
     RUN bundle install
@@ -52,6 +51,8 @@ cat <<EOT >> Dockerfile
     RUN bundle exec whenever --update-crontab
     RUN crontab -l
 
+    EXPOSE 3000
+
     RUN echo 'INSTALL FINISHED!'
 EOT
 
@@ -61,11 +62,12 @@ services:
   app:
     build: .
     restart: always
-    command: cron && bundle exec rails s -b 0.0.0.0
+    command: bash -c "cron && bundle exec puma -C config/puma.rb"
     environment:
       - BUNDLE_PATH=/bundle
     ports:
       - 80:3000
+      - 443:3000
     volumes:
       - .:/var/${WORKDIR}
 volumes:
