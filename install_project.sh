@@ -23,7 +23,8 @@ cat <<EOT >> Dockerfile
     RUN apt-get install -qq -y \
       git \
       nodejs \
-      cron
+      cron \
+      memcached
 
     # Create project directory
     RUN mkdir /${WORKDIR}
@@ -40,6 +41,8 @@ cat <<EOT >> Dockerfile
 
     # Define where our application will live inside the image
     ENV BUNDLE_PATH /bundle
+    ENV RAILS_ENV production
+    ENV RACK_ENV production
 
     # Finish establishing our Ruby enviornment
     RUN bundle install
@@ -52,7 +55,7 @@ cat <<EOT >> Dockerfile
     RUN crontab -l
 
     EXPOSE 3000
-
+    CMD ["bundle", "exec", "puma", "-C", "config/puma.rb"]
     RUN echo 'INSTALL FINISHED!'
 EOT
 
@@ -62,7 +65,7 @@ services:
   app:
     build: .
     restart: always
-    command: bash -c "cron && bundle exec puma -C config/puma.rb"
+    command: bash -c "cron && RAILS_ENV=production bundle exec puma -C config/puma.rb && /usr/bin/memcached -u root"
     environment:
       - BUNDLE_PATH=/bundle
     ports:
