@@ -55,6 +55,8 @@ cat <<EOT >> Dockerfile
     RUN crontab -l
 
     EXPOSE 3000
+    EXPOSE 11211
+
     CMD ["bundle", "exec", "puma", "-C", "config/puma.rb"]
     RUN echo 'INSTALL FINISHED!'
 EOT
@@ -77,7 +79,7 @@ volumes:
   bundle:
 EOT
 
-clear
+# clear
 
 # Stop current running docker and build a new one
 docker-compose stop
@@ -87,7 +89,7 @@ docker-compose build
 rm -f Dockerfile
 
 # clear bash
-clear
+# clear
 
 # Run the new build of Docker
 docker-compose up
