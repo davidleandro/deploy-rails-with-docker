@@ -50,6 +50,9 @@ cat <<EOT >> Dockerfile
     # It allows the dynamic visualization, lines are displayed on the screen as they are generated
     CMD tail -f /dev/null
 
+    ENV TZ=America/Sao_Paulo
+    RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
     # Create crontab schedules
     RUN bundle exec whenever --update-crontab
     RUN crontab -l
