@@ -27,6 +27,7 @@ cat <<EOT >> Dockerfile
       memcached
 
     # Create project directory
+    RUN rm -rf /${WORKDIR}
     RUN mkdir /${WORKDIR}
 
     # Set our working directory inside the image
@@ -45,6 +46,7 @@ cat <<EOT >> Dockerfile
     ENV RACK_ENV production
 
     # Finish establishing our Ruby enviornment
+    RUN gem install bundler:2.1.4
     RUN bundle install
 
     # It allows the dynamic visualization, lines are displayed on the screen as they are generated
